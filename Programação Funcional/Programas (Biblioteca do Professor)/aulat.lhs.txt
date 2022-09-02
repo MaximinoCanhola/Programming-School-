@@ -1,0 +1,199 @@
+
+> import Prelude hiding (length, (++), drop, take, map)
+
+
+Exercício 9.4
+--------------
+
+Queremos provar que
+
+    map f (map g xs) = map (f.g) xs
+
+para qualquer lista (finita) xs
+
+Equações:
+
+> map f [] = []                      -- map.1
+> map f (x:xs) = f x : map f xs      -- map.2
+
+> (f.g) x = f (g x)                  -- composta
+
+Prova por indução sobre xs.
+
+Caso base: xs = []. Quermos provar que
+
+    map f (map g []) = map (f.g) []
+
+Começando pelo lado esquerdo e simplificamos:
+
+  map f (map g []) =
+= { map.1 no interior }
+  map f []
+= { map.1 no exterior }
+  []
+
+Simplificando o lado direito:
+
+  map (f.g) [] =
+= { map.1 }
+  []
+
+Como obtemos o mesmo resultado em ambos os caso,
+fica provado o caso base.
+
+Caso indutivo;
+
+Hipótese de indução:
+  map f (map g xs) = map (f.g) xs     (para algum xs particular)
+
+Tese:
+  map f (map g (x:xs)) = map (f.g) (x:xs)  (para todo x)
+
+Começando pelo lado esquerdo:
+
+  map f (map g (x:xs)) =
+= { map.2 no interior }
+  map f (g x : map g xs)
+= { map.2 no exterior }
+  f (g x) : map f (map g xs)
+= { hip. de indução }
+  f (g x) : map (f.g) xs
+= { composta }
+  (f.g) x : map (f.g) xs
+= { map.2 }
+  map (f.g) (x:xs)
+
+Como queriamos provar.
+
+Exercício 9.5
+-------------
+
+Queremos provar
+  para todo n, xs: take n xs ++ drop n xs = xs
+por indução sobre n e análise de casos sobre xs.
+
+Equações do programa:
+
+> take 0 xs = []                          -- take.1
+> take n [] | n>0 = []                    -- take.2
+> take n (x:xs) | n>0 = x : take (n-1) xs -- take.3
+>
+> drop 0 xs = xs                          -- drop.1
+> drop n [] | n>0 = []                    -- drop.2
+> drop n (x:xs) | n>0 = drop (n-1) xs     -- drop.3
+
+> [] ++ ys = ys                           -- ++.1
+> (x:xs) ++ ys = x : (xs++ys)             -- ++.2
+
+
+Caso base: n = 0
+Queremos provar que 
+  para todo xs: take 0 xs ++ drop 0 xs = xs
+
+Simplificando o lado esquerdo:
+   take 0 xs ++ drop 0 xs
+= { take.1, drop.1 }
+  [] ++ xs
+= { ++.1 }
+  xs
+como queriamos provar.
+
+Caso indutivo;
+
+Hipótese de indução:
+  para todo xs: take n xs ++ drop n xs = xs
+Tese:
+  para todo xs: take (n+1) xs ++ drop (n+1) xs = xs
+
+Simplificando o lado esquerdo:
+
+  take (n+1) xs ++ drop (n+1) xs
+
+Caso xs = []
+------------
+   take (n+1) [] ++ drop (n+1) []
+= { take.2, drop.2 }
+  [] ++ []
+= { ++.1 }
+  []
+= { hipotese }
+  xs
+
+Fica provado neste caso.
+
+Caso xs = (x:xs'):
+Temos de provar
+   take (n+1) (x:xs') ++ drop (n+1) (x:xs') = (x:xs')
+Simplificando o lado esquerdo:
+   take (n+1) (x:xs') ++ drop (n+1) (x:xs')
+= { take.3, drop.3 }
+  (x : take (n+1-1) xs') ++ drop (n+1-1) xs'
+= { aritmética }
+  (x: take n xs') ++ drop n xs'
+= { ++.2 }
+  x : (take n xs' ++ drop n xs')
+= { hip. de indução }
+  x : xs'
+Chegamos ao lado direito, pelo que concluimos a prova.
+
+Exercício extra:
+
+> data Arv a = Vazia
+>            | No a (Arv a) (Arv a)
+>            deriving Show
+
+> listar :: Arv a -> [a]
+> listar Vazia = []                       -- listar.1
+> listar (No x esq dir) = listar esq ++ [x] ++ listar dir
+>                                         -- listar.2
+
+> nos :: Arv a -> Int
+> nos Vazia = 0                              -- nos.1
+> nos (No x esq dir) = 1 + nos esq + nos dir -- nos.2
+
+> length :: [a] -> Int
+> length [] = 0                              -- length.1
+> length (x:xs) = 1 + length xs              -- length.2
+
+Queremos provar que
+
+    nos t = length (listar t) para toda árvore t
+
+por indução sobre árvores.
+
+Caso base:
+    nos Vazia = length (listar Vazia)
+Simplificando o lado esquerdo:
+  nos Vazia
+= { nos.1 }
+  0
+Simplificando o lado direito:
+  length (listar Vazia)
+= { listar.1 }
+  length []
+= { length.1 }
+  0
+
+Caso indutivo:
+
+Hipótese de indução:
+    nos esq = length (listar esq)
+    nos dir = length (listar dir)
+Tese de indução:
+    nos (No x esq dir) = length (listar (No x esq dir))
+
+Simplificando o lado direito:
+
+  length (listar (No x esq dir))
+= { listar.2 }
+  length (listar esq ++ [x] ++ listar dir)
+= { lemma: length (xs++ys) = length xs + length ys }
+  length (listar esq) + length [x] + length (listar dir)
+= { length.2, length.1 }
+  length (listar esq) + 1 + length (listar dir)
+= { hip. de indução }
+  nos esq + 1 + nos dir
+= { nos.2 }
+  nos (No x esq dir)
+
+Chegamos ao lado esquerdo o que conclui a prova.

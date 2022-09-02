@@ -1,0 +1,134 @@
+Exercício 9.12
+--------------
+
+> import Prelude hiding ((++))
+
+> data Arv a = Folha | No a (Arv a) (Arv a)
+>            deriving Show
+
+> listar :: Arv a -> [a]
+> listar Folha = []    -- listar.1
+> listar (No x esq dir) = listar esq ++ [x] ++ listar dir
+>                           -- listar.2
+
+> (++) :: [a] -> [a] -> [a]
+> [] ++ ys = ys              -- ++.1
+> (x:xs) ++ ys = x:(xs++ys)  -- ++.2
+
+Lemma:  (xs ++ ys) ++ zs = xs ++ (ys ++ zs) para todos xs,ys,zs
+ (++ é associativo)
+
+Queremos encontrar uma função
+
+     listarAcc :: Arv a -> [a] -> [a]
+
+tal que
+
+     listarAcc t xs = listar t ++ xs   para todos t, xs
+
+Vamos proseguir por indução sobre a árvore t
+
+Caso base: t = Folha
+
+Temos de provar
+
+     listarAcc Folha xs = listar Folha ++ xs
+
+Simplificando o lado direito
+
+    listar Folha ++ xs
+= { listar.1 }
+    [] ++ xs
+= { ++.1 }
+    xs
+
+Obtemos
+
+> listarAcc Folha xs = xs    -- 1ª equação
+
+Caso indutivo;
+
+Hipótese de indução:
+
+      listarAcc esq xs = listar esq ++ xs
+      listarAcc dir ys = listar dir ++ ys  para quaisquer xs, ys
+
+Tese:
+
+     listarAcc (No x esq dir) xs = listar (No x esq dir) ++ xs
+
+Simplificando o lado direito:
+
+  listar (No x esq dir) ++ xs
+=  { listar.2 }
+  (listar esq ++ [x] ++ listar dir) ++ xs
+= { ++ associativo }
+  listar esq ++ ([x] ++ (listar dir ++ xs))
+= { uma das hip de indução }
+  listar esq ++ ([x] ++ listarAcc dir xs)
+= { a outra hip de indução }
+  listarAcc esq ([x] ++ listarAcc dir xs)
+
+Obtemos
+
+> listarAcc (No x esq dir) xs
+>              = listarAcc esq (x : listarAcc dir xs)
+
+Exercício 9.11
+--------------
+
+Número de nós numa árvore:
+
+> nos :: Arv a -> Int
+> nos Folha = 0                                -- nos.1
+> nos (No _ esq dir) = 1 + nos esq + nos dir   -- nos.2
+
+Número de folhas de uma árvore:
+
+> folhas :: Arv a -> Int
+> folhas Folha = 1                              -- folhas.1
+> folhas (No _ esq dir) = folhas esq + folhas dir -- folhas.2
+
+Queremos provar que
+
+    folhas t = 1 + nos t,  para qualquer t
+
+Por indução sobre t.
+
+Caso base: t = Folha
+
+Temos de provar:
+   folhas Folha = 1 + nos Folha
+
+ folhas Folha
+=  {folhas.1}
+  1
+
+ nos Folha
+= {nos.1}
+ 0
+
+Substituindo obtemos o que queriamos provar.
+
+Caso indutivo:
+
+Hipoteses de indução
+    folhas esq = 1 + nos esq
+    folhas dir = 1 + nos dir
+
+Tese:
+    folhas (No x esq dir) = 1 + nos (No x esq dir)
+
+Simplificando o lado esquerdo da tese:
+
+ folhas (No x esq dir)
+= {folhas.2}
+ folhas esq + folha dir
+= { hipoteses de indução }
+  (1+ nos esq) + (1 + nos dir)
+= 1 + (1 + nos esq + nos dir) }
+  { aritmética }
+= { nos.2}
+  1 + nos (No x esq dir)
+
+como queriamos provar.
